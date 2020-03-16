@@ -1,6 +1,7 @@
 import React, { useRef, useState, useContext } from 'react';
-import { AuthContext } from '../context/auth-context';
 import axios from 'axios';
+
+import { AuthContext } from '../context/auth-context';
 import './AuthPage.css';
 
 const AuthPage = () => {
