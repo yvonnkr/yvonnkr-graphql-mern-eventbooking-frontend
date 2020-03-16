@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useContext } from 'react';
+import { AuthContext } from '../context/auth-context';
 import axios from 'axios';
 import './AuthPage.css';
 
@@ -6,6 +7,7 @@ const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const emailRef = useRef();
   const passwordRef = useRef();
+  const auth = useContext(AuthContext);
 
   const switchModeHandler = () => {
     setIsLogin(prevState => !prevState);
@@ -58,28 +60,34 @@ const AuthPage = () => {
         headers: { 'Content-Type': 'application/json' }
       });
 
-      console.log(response.data);
+      const { token, userId, tokenExpiration } = response.data.data.login;
+
+      if (token) {
+        auth.login(token, userId, tokenExpiration);
+      }
     } catch (err) {
       console.log(err);
     }
   };
   return (
-    <form className='auth-form' onSubmit={submitHandler}>
-      <div className='form-control'>
-        <label htmlFor='email'>E-Mail</label>
-        <input type='email' id='email' ref={emailRef} />
-      </div>
-      <div className='form-control'>
-        <label htmlFor='password'>Password</label>
-        <input type='password' id='pasword' ref={passwordRef} />
-      </div>
-      <div className='form-actions'>
-        <button type='submit'>Submit</button>
-        <button type='button' onClick={switchModeHandler}>
-          Switch to {isLogin ? 'Signup' : 'Login'}
-        </button>
-      </div>
-    </form>
+    <>
+      <form className='auth-form' onSubmit={submitHandler}>
+        <div className='form-control'>
+          <label htmlFor='email'>E-Mail</label>
+          <input type='email' id='email' ref={emailRef} />
+        </div>
+        <div className='form-control'>
+          <label htmlFor='password'>Password</label>
+          <input type='password' id='pasword' ref={passwordRef} />
+        </div>
+        <div className='form-actions'>
+          <button type='submit'>Submit</button>
+          <button type='button' onClick={switchModeHandler}>
+            Switch to {isLogin ? 'Signup' : 'Login'}
+          </button>
+        </div>
+      </form>
+    </>
   );
 };
 
