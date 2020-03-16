@@ -29,13 +29,12 @@ function App() {
           <MainNavigation />
           <main className='main-content'>
             <Switch>
-              {!token && <Redirect from='/' to='/auth' exact />}
               {token && <Redirect from='/' to='/events' exact />}
               {token && <Redirect from='/auth' to='/events' exact />}
-
               {!token && <Route exact path='/auth' component={AuthPage} />}
               <Route exact path='/events' component={Events} />
               {token && <Route exact path='/bookings' component={Bookings} />}
+              {!token && <Redirect to='/auth' exact />}
               <Route component={NotFound} />
             </Switch>
           </main>

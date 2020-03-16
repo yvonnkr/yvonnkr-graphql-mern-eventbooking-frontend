@@ -22,9 +22,12 @@ const MainNavigation = props => {
             <NavLink to='/events'>Events</NavLink>
           </li>
           {auth.token && (
-            <li>
-              <NavLink to='/bookings'>Bookings</NavLink>
-            </li>
+            <>
+              <li>
+                <NavLink to='/bookings'>Bookings</NavLink>
+              </li>
+              <button onClick={auth.logout}>Logout</button>
+            </>
           )}
         </ul>
       </nav>
