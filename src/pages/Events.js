@@ -7,18 +7,24 @@ import React, {
 } from 'react';
 import axios from 'axios';
 
+import { AuthContext } from '../context/auth-context';
 import Modal from './../components/Modal/Modal';
 import Backdrop from './../components/Backdrop/Backdrop';
-import { AuthContext } from '../context/auth-context';
+import EventList from '../components/Events/EventList';
+import Spinner from './../components/Spinner/Spinner';
 import './Events.css';
 
 const Events = () => {
   const [creating, setCreating] = useState(false);
   const [events, setEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const titleRef = useRef();
   const priceRef = useRef();
   const dateRef = useRef();
   const descriptionRef = useRef();
+
   const auth = useContext(AuthContext);
 
   const startCreateEventHandler = () => {
@@ -54,10 +60,6 @@ const Events = () => {
             price
             date
             description
-            creator {
-              _id
-              email
-            }
           }
         }
       `
@@ -75,8 +77,30 @@ const Events = () => {
         }
       });
 
-      console.log(response.data);
-      await fetchEvents();
+      setEvents(prevState => {
+        const {
+          _id,
+          title,
+          price,
+          date,
+          description
+        } = response.data.data.createEvent;
+
+        const updatedEvents = [...prevState];
+
+        updatedEvents.push({
+          _id,
+          title,
+          price,
+          date,
+          description,
+          creator: {
+            _id: auth.userId
+          }
+        });
+
+        return updatedEvents;
+      });
     } catch (err) {
       console.log(err);
     }
@@ -84,9 +108,11 @@ const Events = () => {
 
   const modalCancelHandler = () => {
     setCreating(false);
+    setSelectedEvent(null);
   };
 
   const fetchEvents = useCallback(async () => {
+    setIsLoading(true);
     //graphql query
     const reqBody = {
       query: `
@@ -119,8 +145,10 @@ const Events = () => {
 
       const fetchedEvents = response.data.data.events;
       setEvents(fetchedEvents);
+      setIsLoading(false);
     } catch (err) {
       console.log(err);
+      setIsLoading(false);
     }
   }, []);
 
@@ -131,25 +159,25 @@ const Events = () => {
     getEvents();
   }, [fetchEvents]);
 
-  const eventList = events.map(event => {
-    return (
-      <li key={event._id} className='events__list-item'>
-        {event.title}
-      </li>
-    );
-  });
+  const showDetailHandler = eventId => {
+    const selectedEv = events.find(e => e._id === eventId);
+    setSelectedEvent(selectedEv);
+  };
+
+  const bookEventHandler = () => {};
 
   return (
     <>
+      {creating || (selectedEvent && <Backdrop />)}
       {creating && (
         <>
-          <Backdrop />
           <Modal
             title='Add Event'
             canCancel
             canConfirm
             onConfirm={modalConfirmHandler}
             onCancel={modalCancelHandler}
+            confimText='Confirm'
           >
             <form>
               <div className='form-control'>
@@ -172,6 +200,27 @@ const Events = () => {
           </Modal>
         </>
       )}
+
+      {selectedEvent && (
+        <>
+          <Modal
+            title={selectedEvent.title}
+            canCancel
+            canConfirm
+            onCancel={modalCancelHandler}
+            onConfirm={bookEventHandler}
+            confimText='Book Event'
+          >
+            <h1>{selectedEvent.title}</h1>
+            <h2>
+              ${selectedEvent.price} -{' '}
+              {new Date(selectedEvent.date).toLocaleDateString()}
+            </h2>
+            <p>{selectedEvent.description}</p>
+          </Modal>
+        </>
+      )}
+
       {auth.token && (
         <div className='events-control'>
           <p>Share your own events.</p>
@@ -180,7 +229,16 @@ const Events = () => {
           </button>
         </div>
       )}
-      <ul className='events__list'>{eventList}</ul>
+
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <EventList
+          events={events}
+          authUserId={auth.userId}
+          onViewDetail={showDetailHandler}
+        />
+      )}
     </>
   );
 };
