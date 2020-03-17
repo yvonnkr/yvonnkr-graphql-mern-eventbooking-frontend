@@ -4,11 +4,14 @@ import axios from 'axios';
 import { AuthContext } from '../context/auth-context';
 import Spinner from './../components/Spinner/Spinner';
 import BookingList from '../components/Bookings/BookingList';
+import BookingsChart from '../components/Bookings/BookingsChart';
+import BookingsControls from '../components/Bookings/BookingsControls';
 
 const Bookings = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [bookings, setBookings] = useState([]);
   const [isActive, setIsActive] = useState(true);
+  const [outputType, setOutputType] = useState('list');
 
   const auth = useContext(AuthContext);
 
@@ -25,6 +28,7 @@ const Bookings = () => {
               _id
               title
               date
+              price
             }
           }
         }
@@ -108,15 +112,45 @@ const Bookings = () => {
     }
   };
 
-  return (
-    <>
-      {isLoading ? (
-        <Spinner />
-      ) : (
-        <BookingList bookings={bookings} onDelete={deleteBookingHandler} />
-      )}
-    </>
-  );
+  const changeOutputTypeHandler = outputType => {
+    if (outputType === 'list') {
+      setOutputType('list');
+    } else {
+      setOutputType('chart');
+    }
+  };
+
+  let content = <Spinner />;
+
+  if (!isLoading) {
+    content = (
+      <>
+        <BookingsControls
+          onChange={changeOutputTypeHandler}
+          activeOutputType={outputType}
+        />
+        <div>
+          {outputType === 'list' ? (
+            <BookingList bookings={bookings} onDelete={deleteBookingHandler} />
+          ) : (
+            <BookingsChart bookings={bookings} />
+          )}
+        </div>
+      </>
+    );
+  }
+
+  return <>{content}</>;
+
+  // return (
+  //   <>
+  //     {isLoading ? (
+  //       <Spinner />
+  //     ) : (
+  //       <BookingList bookings={bookings} onDelete={deleteBookingHandler} />
+  //     )}
+  //   </>
+  // );
 };
 
 export default Bookings;
