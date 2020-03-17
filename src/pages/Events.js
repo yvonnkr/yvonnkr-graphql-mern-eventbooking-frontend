@@ -164,7 +164,43 @@ const Events = () => {
     setSelectedEvent(selectedEv);
   };
 
-  const bookEventHandler = () => {};
+  const bookEventHandler = async () => {
+    if (auth.token === null) {
+      setSelectedEvent(null);
+      return;
+    }
+
+    //graphql query
+    const reqBody = {
+      query: `
+        mutation {
+          bookEvent (eventId: "${selectedEvent._id}") {
+             _id
+            createdAt
+            updatedAt
+          }
+        }
+      `
+    };
+
+    //ajax request
+    try {
+      const response = await axios({
+        url: `${process.env.REACT_APP_BACKEND_URL}/graphql`,
+        method: 'POST',
+        data: reqBody,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`
+        }
+      });
+
+      console.log(response.data);
+      setSelectedEvent(null);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   return (
     <>
@@ -209,7 +245,7 @@ const Events = () => {
             canConfirm
             onCancel={modalCancelHandler}
             onConfirm={bookEventHandler}
-            confimText='Book Event'
+            confimText={auth.token ? 'Book Event' : 'Confirm'}
           >
             <h1>{selectedEvent.title}</h1>
             <h2>
