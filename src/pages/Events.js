@@ -53,8 +53,8 @@ const Events = () => {
     //graphql query
     const reqBody = {
       query: `
-        mutation {
-          createEvent(eventInput: {title: "${title}", price: ${price}, date: "${date}", description: "${description}"}){
+        mutation CreateEvent($title: String!, $price: Float!, $date: String!, $description: String!) {
+          createEvent(eventInput: {title: $title, price: $price, date: $date, description: $description }){
             _id
             title
             price
@@ -62,7 +62,13 @@ const Events = () => {
             description
           }
         }
-      `
+      `,
+      variables: {
+        title: title,
+        price: price,
+        date: date,
+        description: description
+      }
     };
 
     //ajax request
@@ -173,14 +179,17 @@ const Events = () => {
     //graphql query
     const reqBody = {
       query: `
-        mutation {
-          bookEvent (eventId: "${selectedEvent._id}") {
+        mutation BookEvent($eventId: ID!) {
+          bookEvent (eventId: $eventId) {
              _id
             createdAt
             updatedAt
           }
         }
-      `
+      `,
+      variables: {
+        eventId: selectedEvent._id
+      }
     };
 
     //ajax request
